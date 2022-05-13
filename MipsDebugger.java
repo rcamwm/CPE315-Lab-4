@@ -1,7 +1,7 @@
 /*
 Cameron McGiffert 
 CPE315 Section 1
-Lab 3
+Lab 4
  */
 
 import java.util.Scanner;
@@ -15,6 +15,7 @@ public class MipsDebugger {
     private int[] registers;
     private int[] memory;
     private Instruction[] instructions;
+    private MipsCpuEmulator cpu;
 
     MipsDebugger(Instruction[] instructions)
     {
@@ -22,6 +23,7 @@ public class MipsDebugger {
         this.registers = new int[32];
         this.memory = new int[8192];
         this.instructions = instructions;
+        this.cpu = new MipsCpuEmulator();
     }
 
     public void run()
@@ -55,7 +57,10 @@ public class MipsDebugger {
 
     private char runCommand(Scanner scan, boolean isScriptMode)
     {
-        String input = scan.nextLine().toLowerCase();
+        if (!isScriptMode)
+            System.out.print("mips> ");
+
+        String input = scan.nextLine();
         String[] arguments = input.split(" ");
         char command = input.charAt(0);
 
@@ -66,8 +71,6 @@ public class MipsDebugger {
                 System.out.print(" " + arguments[i]);
             System.out.println();
         }
-        else
-            System.out.print("mips> ");
 
         switch (command)
         {
@@ -137,16 +140,29 @@ public class MipsDebugger {
 
     private void singleStep(int steps)
     {
-        int s = 0;
-        for (; s < steps && this.pc < instructions.length; s++)
-            this.pc = instructions[this.pc].executeInstruction(this.pc, registers, memory);
-        System.out.println("        " + s + " instruction(s) executed");
+        for (int s = 0; s < steps; s++)
+        {
+            if (this.pc < instructions.length)
+            {
+                cpu.runSingleCycle(instructions[this.pc], this.pc);
+                this.pc = instructions[this.pc].executeInstruction(this.pc, registers, memory);
+            }
+            else
+                cpu.runSingleCycle();
+                
+            cpu.printPipeline();
+        }        
     }
 
     private void runProgram()
     {
         while (this.pc < instructions.length)
-            this.pc = instructions[this.pc].executeInstruction(this.pc, registers, memory);      
+        {
+            cpu.runSingleCycle(instructions[this.pc], this.pc);
+            this.pc = instructions[this.pc].executeInstruction(this.pc, registers, memory);
+        }
+        cpu.runAllCycles();
+        cpu.printCpi();
     }
 
     private void displayMemory(int num1, int num2)

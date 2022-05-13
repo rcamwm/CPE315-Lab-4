@@ -1,7 +1,7 @@
 /*
 Cameron McGiffert 
 CPE315 Section 1
-Lab 3
+Lab 4
  */
 
 import java.util.Hashtable;
@@ -140,7 +140,7 @@ public class MipsAssembler {
                 immediate = labelPosition - instructionNumber;
             }
         }
-        return new Instruction_I(op, rt, rs, immediate);
+        return new Instruction_I(operation, op, rt, rs, immediate);
     }
 
     private static Instruction_J createJ_Format_Instruction(
@@ -148,7 +148,7 @@ public class MipsAssembler {
     {
         int op = Operations.opTable.get(operation);
         int address = labelToAddressTable.get(label);
-        return new Instruction_J(op, address);
+        return new Instruction_J(operation, op, address);
     }
 
     private static Instruction_R createR_Format_Instruction(String operation, String[] args)
@@ -160,18 +160,18 @@ public class MipsAssembler {
             int rt = Registers.registerTable.get(args[1]);
             int shamt = Integer.parseInt(args[2]);
             if (funct == 0)
-                return new Instruction_R('l', rd, rt, shamt);
-            return new Instruction_R('r', rd, rt, shamt); 
+                return new Instruction_R(operation, 'l', rd, rt, shamt);
+            return new Instruction_R(operation, 'r', rd, rt, shamt); 
         }
         else if (funct == 8)
         {
             int rs = Registers.registerTable.get(args[0]);
-            return new Instruction_R(funct, rs);
+            return new Instruction_R(operation, funct, rs);
         }
         int rd = Registers.registerTable.get(args[0]); 
         int rs = Registers.registerTable.get(args[1]);
         int rt = Registers.registerTable.get(args[2]);
-        return new Instruction_R(funct, rd, rs, rt);
+        return new Instruction_R(operation, funct, rd, rs, rt);
     }
 
     private static boolean addLabelAddress(

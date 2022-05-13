@@ -1,22 +1,34 @@
 /*
 Cameron McGiffert 
 CPE315 Section 1
-Lab 3
+Lab 4
  */
 
 public class Instruction_I extends Instruction
 {
+    private String mneumonic;
     private int op;
     private int rs;
     private int rt;
     private int immediate;
 
-    public Instruction_I(int op, int rt, int rs, int immediate)
+    public Instruction_I(String mneumonic, int op, int rt, int rs, int immediate)
     {
+        this.mneumonic = mneumonic;
         this.op = op;
         this.rs = rs;
         this.rt = rt;
         this.immediate = immediate;
+    }
+
+    public String getMnemonic()
+    {
+        return this.mneumonic;
+    }
+
+    public int getOpCode()
+    {
+        return this.op;
     }
 
     public int executeInstruction(int pc, int[] registers, int[] memory)

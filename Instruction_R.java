@@ -1,11 +1,12 @@
 /*
 Cameron McGiffert 
 CPE315 Section 1
-Lab 3
+Lab 4
  */
 
 public class Instruction_R extends Instruction
 {
+    private String mneumonic;
     private int op = 0;
     private int rs;
     private int rt;
@@ -13,8 +14,9 @@ public class Instruction_R extends Instruction
     private int shamt;
     private int funct;
 
-    public Instruction_R(int funct, int rd, int rs, int rt)
+    public Instruction_R(String mneumonic, int funct, int rd, int rs, int rt)
     {
+        this.mneumonic = mneumonic;
         this.rs = rs;
         this.rt = rt;
         this.rd = rd;
@@ -22,8 +24,9 @@ public class Instruction_R extends Instruction
         this.funct = funct;
     }
 
-    public Instruction_R(char shiftDirection, int rd, int rt, int shamt)
+    public Instruction_R(String mneumonic, char shiftDirection, int rd, int rt, int shamt)
     {
+        this.mneumonic = mneumonic;
         this.rs = 0;
         this.rt = rt;
         this.rd = rd;
@@ -34,13 +37,24 @@ public class Instruction_R extends Instruction
             this.funct = 2;
     }
 
-    public Instruction_R(int funct, int rs)
+    public Instruction_R(String mneumonic, int funct, int rs)
     {
+        this.mneumonic = mneumonic;
         this.rs = rs;
         this.rt = 0;
         this.rd = 0;
         this.shamt = 0;
         this.funct = funct;
+    }
+
+    public String getMnemonic()
+    {
+        return this.mneumonic;
+    }
+
+    public int getFunctCode()
+    {
+        return this.funct;
     }
 
     public int executeInstruction(int pc, int[] registers, int[] memory)

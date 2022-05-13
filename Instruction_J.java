@@ -1,18 +1,25 @@
 /*
 Cameron McGiffert 
 CPE315 Section 1
-Lab 3
+Lab 4
  */
 
 public class Instruction_J extends Instruction
 {
+    private String mneumonic;
     private int op;
     private int address;
 
-    public Instruction_J(int op, int address)
+    public Instruction_J(String mneumonic, int op, int address)
     {
+        this.mneumonic = mneumonic;
         this.op = op;
         this.address = address;
+    }
+
+    public String getMnemonic()
+    {
+        return this.mneumonic;
     }
 
     public int executeInstruction(int pc, int[] registers, int[] memory)

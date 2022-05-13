@@ -1,7 +1,7 @@
 /*
 Cameron McGiffert 
 CPE315 Section 1
-Lab 3
+Lab 4
  */
 
 import java.util.HashMap;
