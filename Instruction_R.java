@@ -52,6 +52,16 @@ public class Instruction_R extends Instruction
         return this.mneumonic;
     }
 
+    public int getRs()
+    {
+        return this.rs;
+    }
+
+    public int getRt()
+    {
+        return this.rt;
+    }
+
     public int getFunctCode()
     {
         return this.funct;

@@ -7,11 +7,11 @@ Lab 4
 public class lab4 {
     public static void main(String[] args)
     {
-        String fileName = "lab4_fib10.asm";
+        String fileName = "lab4_fib20";
         //String fileName = args[0];
-        Instruction[] instructions = MipsAssembler.getInstructions(fileName);
+        Instruction[] instructions = MipsAssembler.getInstructions(fileName + ".asm");
         MipsDebugger debugger = new MipsDebugger(instructions);
-        debugger.run("lab4_fib10.script");
+        debugger.run(fileName + ".script");
 
         // if (args.length == 1)
         //     debugger.run();

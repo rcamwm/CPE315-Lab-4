@@ -31,6 +31,44 @@ public class Instruction_I extends Instruction
         return this.op;
     }
 
+    public int getRs()
+    {
+        return this.rs;
+    }
+
+    public int getRt()
+    {
+        return this.rt;
+    }
+
+    public boolean useAfterLoad(Instruction instruction)
+    {
+        if (this.op == 35)
+        {
+            if (instruction instanceof Instruction_R)
+            {
+                Instruction_R r = (Instruction_R)instruction;
+                if (this.rt == r.getRs() || this.rt == r.getRt())
+                    return true;
+            }
+            else if (instruction instanceof Instruction_I)
+            {
+                Instruction_I i = (Instruction_I)instruction;
+                if (this.rt == i.getRs())
+                    return true;
+            }
+        }
+        return false;
+        
+    }
+
+    public boolean usesRegister(int reg)
+    {
+        if (reg == this.rs || reg == this.rt)
+            return true;
+        return false;
+    }
+
     public int executeInstruction(int pc, int[] registers, int[] memory)
     {
         if (this.op == 4)
