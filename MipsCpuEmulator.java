@@ -5,8 +5,15 @@ Lab 4
 */
 
 import java.util.ArrayDeque;
+import java.util.Arrays;
+import java.util.HashSet;
 
 public class MipsCpuEmulator {
+    private Instruction[] instructions;
+    private int[] registers;
+    private int[] memory;
+    private int pc;
+
     private InstructionPc[] pipeline;
     private ArrayDeque<InstructionPc> backlog;
     private int ifIdPos;
@@ -22,8 +29,11 @@ public class MipsCpuEmulator {
 
     final static private int PIPE_SIZE = 4;
 
-    MipsCpuEmulator()
+    MipsCpuEmulator(Instruction[] instructions)
     {
+        this.instructions = instructions;
+        this.registers = new int[32];
+        this.memory = new int[8192];
         this.pipeline = new InstructionPc[PIPE_SIZE];
         this.backlog = new ArrayDeque<InstructionPc>();
         reset();
@@ -31,6 +41,8 @@ public class MipsCpuEmulator {
 
     public void reset()
     {
+        this.pc = 0;
+
         this.backlog.clear();
         this.ifIdPos = 0;
         this.instructionsInPipeline = 0;
@@ -43,15 +55,31 @@ public class MipsCpuEmulator {
         this.loadFlag = false;
         this.jumpFlag = false;
 
-        for (int i = 0; i < PIPE_SIZE; i++)
-            this.pipeline[i] = null;
+        Arrays.fill(this.registers, 0);
+        Arrays.fill(this.memory, 0);
+        Arrays.fill(this.pipeline, null);
     }
 
-    public void runSingleCycle()
+    public void runSingleCycle(int steps)
+    {
+        for (int s = 0; s < steps; s++)
+        {
+            if (this.pc < instructions.length)
+            {
+                pipelineInstruction(instructions[this.pc], this.pc);
+                this.pc = instructions[this.pc].executeInstruction(this.pc, registers, memory);
+            }
+            else
+                pipelineInstruction();
+        }        
+    }
+
+    private void pipelineInstruction()
     {
         this.cycles++;
         checkForLoadFlag();
         updateInstructionExecuted();
+
         if (this.backlog.isEmpty())
         {
             this.pipeline[this.ifIdPos] = null;
@@ -66,7 +94,7 @@ public class MipsCpuEmulator {
         this.ifIdPos = incrementPipelinePointer(this.ifIdPos, 1);            
     }
 
-    public void runSingleCycle(Instruction instruction, int pc)
+    private void pipelineInstruction(Instruction instruction, int pc)
     {
         this.cycles++;
         applySquash(pc);
@@ -74,6 +102,7 @@ public class MipsCpuEmulator {
         checkForLoadFlag();
         this.backlog.add(new InstructionPc(instruction, pc + 1));
         updateInstructionExecuted();
+
         if (this.pipeline[this.ifIdPos] == null)
             this.instructionsInPipeline++;
         if (!addedStall())
@@ -84,10 +113,13 @@ public class MipsCpuEmulator {
 
     public void runAllCycles()
     {
-        while (this.instructionsInPipeline > 0)
+        while (this.pc < instructions.length)
         {
-            runSingleCycle();
+            pipelineInstruction(instructions[this.pc], this.pc);
+            this.pc = instructions[this.pc].executeInstruction(this.pc, registers, memory);
         }
+        while (this.instructionsInPipeline > 0)
+            pipelineInstruction();
     }
 
     private void updateInstructionExecuted()
@@ -168,6 +200,37 @@ public class MipsCpuEmulator {
     private int incrementPipelinePointer(int value, int amount)
     {
         return (value + amount + PIPE_SIZE) % PIPE_SIZE;
+    }
+
+    public void printRegisterState()
+    {
+        HashSet<Integer> skipReg = new HashSet<>(Arrays.asList(1, 26, 27, 28, 30));
+        int newLine = 0;
+        System.out.println("\npc = " + this.pc);
+        for (int r = 0; r < Registers.registerArray.length; r++)
+        {
+            if (!skipReg.contains(r))
+            {
+                if (r == 0)
+                    System.out.print(Registers.registerArray[r] + " = " + this.registers[r] + "           ");
+                else if ((newLine + 1) % 4 == 0)
+                    System.out.println(Registers.registerArray[r] + " = " + this.registers[r]);
+                else
+                    System.out.print(Registers.registerArray[r] + " = " + this.registers[r] + "          ");
+                newLine++;
+            }
+        }
+        System.out.println("\n");
+    }
+
+    public void displayMemory(int num1, int num2)
+    {
+        System.out.println();
+        for (int i = num1; i <= num2; i++)
+        {
+            System.out.println("[" + i + "] = " + memory[i]);
+        }
+        System.out.println();
     }
 
     public void printPipeline()

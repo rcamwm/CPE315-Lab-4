@@ -5,25 +5,23 @@ Lab 4
  */
 
 import java.util.Scanner;
-import java.util.HashSet;
-import java.util.Arrays;
 import java.io.File;
 import java.io.FileNotFoundException;
 
 public class MipsDebugger {
-    private int pc;
-    private int[] registers;
-    private int[] memory;
-    private Instruction[] instructions;
+    // private int pc;
+    // private int[] registers;
+    // private int[] memory;
+    // private Instruction[] instructions;
     private MipsCpuEmulator cpu;
 
     MipsDebugger(Instruction[] instructions)
     {
-        this.pc = 0;
-        this.registers = new int[32];
-        this.memory = new int[8192];
-        this.instructions = instructions;
-        this.cpu = new MipsCpuEmulator();
+        // this.pc = 0;
+        // this.registers = new int[32];
+        // this.memory = new int[8192];
+        // this.instructions = instructions;
+        this.cpu = new MipsCpuEmulator(instructions);
     }
 
     public void run()
@@ -119,67 +117,29 @@ public class MipsDebugger {
 
     private void dumpRegisterState()
     {
-        HashSet<Integer> skipReg = new HashSet<>(Arrays.asList(1, 26, 27, 28, 30));
-        int newLine = 0;
-        System.out.println("\npc = " + this.pc);
-        for (int r = 0; r < Registers.registerArray.length; r++)
-        {
-            if (!skipReg.contains(r))
-            {
-                if (r == 0)
-                    System.out.print(Registers.registerArray[r] + " = " + this.registers[r] + "           ");
-                else if ((newLine + 1) % 4 == 0)
-                    System.out.println(Registers.registerArray[r] + " = " + this.registers[r]);
-                else
-                    System.out.print(Registers.registerArray[r] + " = " + this.registers[r] + "          ");
-                newLine++;
-            }
-        }
-        System.out.println("\n");
+        cpu.printRegisterState();
     }
 
     private void singleStep(int steps)
-    {
-        for (int s = 0; s < steps; s++)
-        {
-            if (this.pc < instructions.length)
-            {
-                cpu.runSingleCycle(instructions[this.pc], this.pc);
-                this.pc = instructions[this.pc].executeInstruction(this.pc, registers, memory);
-            }
-            else
-                cpu.runSingleCycle();
-                
-            cpu.printPipeline();
-        }        
+    {    
+        cpu.runSingleCycle(steps);
+        cpu.printPipeline();  
     }
 
     private void runProgram()
     {
-        while (this.pc < instructions.length)
-        {
-            cpu.runSingleCycle(instructions[this.pc], this.pc);
-            this.pc = instructions[this.pc].executeInstruction(this.pc, registers, memory);
-        }
         cpu.runAllCycles();
         cpu.printCpi();
     }
 
     private void displayMemory(int num1, int num2)
     {
-        System.out.println();
-        for (int i = num1; i <= num2; i++)
-        {
-            System.out.println("[" + i + "] = " + memory[i]);
-        }
-        System.out.println();
+        cpu.displayMemory(num1, num2);
     }
 
     private void clear()
     {
         System.out.println("        Simulator reset\n");
-        this.pc = 0;
-        Arrays.fill(this.registers, 0);
-        Arrays.fill(this.memory, 0);
+        cpu.reset();
     }
 }
