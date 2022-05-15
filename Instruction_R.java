@@ -131,6 +131,18 @@ public class Instruction_R extends Instruction
             registers[this.rd] = 0;
     }
 
+    public boolean isBranchInstruction()
+    {
+        return false;
+    }
+
+    public boolean isJumpInstruction()
+    {
+        if (this.funct == 8)
+            return true;
+        return false;
+    }
+
     public void printBinary()
     {
         System.out.print(String.format("%6s", Integer.toBinaryString(this.op)).replace(" ", "0") + " ");

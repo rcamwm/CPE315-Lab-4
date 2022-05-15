@@ -9,12 +9,14 @@ public class Instruction_J extends Instruction
     private String mneumonic;
     private int op;
     private int address;
+    private int returnPc; // For jal instructions
 
     public Instruction_J(String mneumonic, int op, int address)
     {
         this.mneumonic = mneumonic;
         this.op = op;
         this.address = address;
+        this.returnPc = 0;
     }
 
     public String getMnemonic()
@@ -22,16 +24,41 @@ public class Instruction_J extends Instruction
         return this.mneumonic;
     }
 
+    public int getAddress()
+    {
+        return this.address;
+    }
+
+    public void setReturnPc(int currentPc)
+    {
+        this.returnPc = currentPc;
+    }
+
+    public int getReturnPc()
+    {
+        return this.returnPc;
+    }
+
     public int executeInstruction(int pc, int[] registers, int[] memory)
     {
         if (this.op == 3)
-            jal(pc, registers);
+            jal(registers);
         return this.address; // j
     }
 
-    private void jal(int pc, int[] registers)
+    private void jal(int[] registers)
     {
-        registers[Registers.registerTable.get("$ra")] = pc + 1;
+        registers[Registers.registerTable.get("$ra")] = this.returnPc;
+    } // +0 because returnPc is set 1 cycle after insertion, and so as to not rerun jal
+
+    public boolean isBranchInstruction()
+    {
+        return false;
+    }
+
+    public boolean isJumpInstruction()
+    {
+        return true;
     }
 
     public void printBinary()

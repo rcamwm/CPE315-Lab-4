@@ -14,10 +14,8 @@ public class MipsCpuEmulator {
     private int[] memory;
     private int pc;
 
-    private InstructionPc[] pipeline;
-    private ArrayDeque<InstructionPc> backlog;
-    private int ifIdPos;
-    private int instructionsInPipeline;
+    private Pipeline pipeline;
+    private ArrayDeque<InstructionPcStruct> backlog;
     private int instructionsExecuted;
     private int cycles;
     private int lastPc;
@@ -26,16 +24,15 @@ public class MipsCpuEmulator {
     private boolean branchFlag;
     private boolean loadFlag;
     private boolean jumpFlag;
-
-    final static private int PIPE_SIZE = 4;
+    private boolean pcOverwritten;
 
     MipsCpuEmulator(Instruction[] instructions)
     {
         this.instructions = instructions;
         this.registers = new int[32];
         this.memory = new int[8192];
-        this.pipeline = new InstructionPc[PIPE_SIZE];
-        this.backlog = new ArrayDeque<InstructionPc>();
+        this.pipeline = new Pipeline();
+        this.backlog = new ArrayDeque<InstructionPcStruct>();
         reset();
     }
 
@@ -44,8 +41,6 @@ public class MipsCpuEmulator {
         this.pc = 0;
 
         this.backlog.clear();
-        this.ifIdPos = 0;
-        this.instructionsInPipeline = 0;
         this.instructionsExecuted = 0;
         this.cycles = 0;
         this.lastPc = 0;
@@ -54,23 +49,112 @@ public class MipsCpuEmulator {
         this.branchFlag = false;
         this.loadFlag = false;
         this.jumpFlag = false;
+        this.pcOverwritten = false;
 
         Arrays.fill(this.registers, 0);
         Arrays.fill(this.memory, 0);
-        Arrays.fill(this.pipeline, null);
+        this.pipeline.clear();
+    }
+
+    public void cycle()
+    {
+        this.cycles++;
+        updateInstructionExecuted();
+        this.pcOverwritten = false;
+
+        int currentPc = this.pc;
+        instructionFetch(currentPc);
+        instructionDecode(currentPc);
+        instructionExecute(currentPc);
+        instructionMemoryAccess(currentPc);
+
+        if (!pcOverwritten)
+            this.pc++;
+        this.pipeline.cycleIncrement();
+    }
+
+    private void instructionFetch(int currentPc)
+    {
+        if (currentPc < this.instructions.length)
+            this.pipeline.writeIfId(this.instructions[currentPc], currentPc + 1);
+        else
+            this.pipeline.clearIfId();
+    }
+
+    private void instructionDecode(int currentPc)
+    {
+        if (this.pipeline.getIdExe() != null)
+        {
+            Instruction decoded = this.pipeline.getIdExe().instruction;
+            if (decoded.isJumpInstruction())
+            {
+                this.pipeline.writeIfId(new Instruction_Blank(true), currentPc + 1);
+                if (decoded instanceof Instruction_J)
+                {
+                    ((Instruction_J)decoded).setReturnPc(this.pc);
+                    this.pc = ((Instruction_J)decoded).getAddress();
+                }
+                else if (decoded instanceof Instruction_R)
+                {
+                    this.pc = this.registers[((Instruction_R)decoded).getRs()];
+                    if (this.pc == 0) 
+                        System.out.println("what");
+                }
+                    
+                this.pcOverwritten = true;
+            }
+        }
+    }
+
+    private void instructionExecute(int currentPc)
+    {
+        if (this.pipeline.getExeMem() != null)
+        {
+            Instruction executed = this.pipeline.getExeMem().instruction;
+            executed.executeInstruction(currentPc, this.registers, this.memory);
+            if (this.pipeline.getIdExe() != null &&
+                executed instanceof Instruction_I &&
+                ((Instruction_I)executed).useAfterLoad(this.pipeline.getIdExe().instruction))
+            {
+                this.pipeline.writeIfId(this.pipeline.getIdExe().instruction, this.pipeline.getIdExe().nextPc);
+                this.pipeline.writeIdExe(new Instruction_Blank(false), this.pipeline.getIfId().nextPc);    
+                this.pcOverwritten = true;
+            }
+        }
+    }
+
+    private void instructionMemoryAccess(int currentPc) 
+    {
+        if (this.pipeline.getMemWb() != null)
+        {
+            Instruction memoryAccessed = this.pipeline.getMemWb().instruction;
+            if (memoryAccessed.isBranchInstruction())
+            {
+                int newPc = ((Instruction_I)memoryAccessed).getBranchPc();
+                if (newPc != 0)
+                {
+                    this.pipeline.writeIfId(new Instruction_Blank(true), currentPc + 1);
+                    this.pipeline.writeIdExe(new Instruction_Blank(true), currentPc + 1);
+                    this.pipeline.writeExeMem(new Instruction_Blank(true), currentPc + 1);
+                    this.pc = newPc;
+                    this.pcOverwritten = true;
+                }
+            }
+        }
     }
 
     public void runSingleCycle(int steps)
     {
         for (int s = 0; s < steps; s++)
         {
-            if (this.pc < instructions.length)
-            {
-                pipelineInstruction(instructions[this.pc], this.pc);
-                this.pc = instructions[this.pc].executeInstruction(this.pc, registers, memory);
-            }
-            else
-                pipelineInstruction();
+            cycle();
+            // if (this.pc < instructions.length)
+            // {
+            //     pipelineInstruction(instructions[this.pc], this.pc);
+            //     this.pc = instructions[this.pc].executeInstruction(this.pc, registers, memory);
+            // }
+            // else
+            //     pipelineInstruction();
         }        
     }
 
@@ -82,16 +166,19 @@ public class MipsCpuEmulator {
 
         if (this.backlog.isEmpty())
         {
-            this.pipeline[this.ifIdPos] = null;
-            this.instructionsInPipeline--;
+            this.pipeline.clearIfId();
         }
         else
         {
             if (!addedStall())
-                this.pipeline[this.ifIdPos] = this.backlog.poll();
-            this.lastPc = this.pipeline[this.ifIdPos].nextPc;
+            {
+                InstructionPcStruct i = this.backlog.poll();
+                this.pipeline.writeIfId(i.instruction, i.nextPc);
+            }
+            InstructionPcStruct j = this.pipeline.getIfId();
+            this.lastPc = j.nextPc;
         }
-        this.ifIdPos = incrementPipelinePointer(this.ifIdPos, 1);            
+        this.pipeline.cycleIncrement();
     }
 
     private void pipelineInstruction(Instruction instruction, int pc)
@@ -100,32 +187,32 @@ public class MipsCpuEmulator {
         applySquash(pc);
         checkForBranchJumpFlags(instruction, pc + 1);
         checkForLoadFlag();
-        this.backlog.add(new InstructionPc(instruction, pc + 1));
+        this.backlog.add(new InstructionPcStruct(instruction, pc + 1));
         updateInstructionExecuted();
 
-        if (this.pipeline[this.ifIdPos] == null)
-            this.instructionsInPipeline++;
         if (!addedStall())
-            this.pipeline[this.ifIdPos] = this.backlog.poll();
-        this.lastPc = this.pipeline[this.ifIdPos].nextPc;
-        this.ifIdPos = incrementPipelinePointer(this.ifIdPos, 1);            
+        {
+            InstructionPcStruct i = this.backlog.poll();
+            this.pipeline.writeIfId(i.instruction, i.nextPc);
+        }
+        InstructionPcStruct j = this.pipeline.getIfId();
+        this.lastPc = j.nextPc;
+        this.pipeline.cycleIncrement();     
     }
 
     public void runAllCycles()
     {
-        while (this.pc < instructions.length)
+        while (this.pc < instructions.length || this.pipeline.getInstructionCount() > 0)
         {
-            pipelineInstruction(instructions[this.pc], this.pc);
-            this.pc = instructions[this.pc].executeInstruction(this.pc, registers, memory);
+            cycle();
+            printPipeline();
         }
-        while (this.instructionsInPipeline > 0)
-            pipelineInstruction();
     }
 
     private void updateInstructionExecuted()
     {
-        if (this.pipeline[this.ifIdPos] != null &&
-        !(this.pipeline[this.ifIdPos].instruction instanceof Instruction_Blank))
+        if (this.pipeline.getIfId() != null &&
+            !(this.pipeline.getIfId().instruction instanceof Instruction_Blank))
         {
             this.instructionsExecuted++;
         }
@@ -153,14 +240,20 @@ public class MipsCpuEmulator {
 
     private void checkForLoadFlag()
     {
-        int idExe = incrementPipelinePointer(this.ifIdPos, -2);
-        int ifId = incrementPipelinePointer(this.ifIdPos, -1);
-        if (this.pipeline[ifId] != null && this.pipeline[idExe] != null &&
-            this.pipeline[idExe].instruction instanceof Instruction_I &&
-            ((Instruction_I)this.pipeline[idExe].instruction).useAfterLoad(this.pipeline[ifId].instruction))
+        if (this.pipeline.getIdExe() != null && this.pipeline.getExeMem() != null &&
+            this.pipeline.getExeMem().instruction instanceof Instruction_I &&
+            ((Instruction_I)this.pipeline.getExeMem().instruction).useAfterLoad(this.pipeline.getIdExe().instruction))
         {
             this.loadFlag = true;
         }
+        // int idExe = incrementPipelinePointer(this.ifIdPos, -2);
+        // int ifId = incrementPipelinePointer(this.ifIdPos, -1);
+        // if (this.pipeline[ifId] != null && this.pipeline[idExe] != null &&
+        //     this.pipeline[idExe].instruction instanceof Instruction_I &&
+        //     ((Instruction_I)this.pipeline[idExe].instruction).useAfterLoad(this.pipeline[ifId].instruction))
+        // {
+        //     this.loadFlag = true;
+        // }
     }
 
     private void applySquash(int nextPc)
@@ -168,7 +261,7 @@ public class MipsCpuEmulator {
         if (this.jumpFlag)
         {
             this.jumpFlag = false;
-            this.backlog.add(new InstructionPc(new Instruction_Blank(true), nextPc));
+            this.backlog.add(new InstructionPcStruct(new Instruction_Blank(true), nextPc));
         }
         else if (this.branchFlag)
         {
@@ -176,7 +269,7 @@ public class MipsCpuEmulator {
             if (this.notTakenBranchPc != nextPc)
             {
                 for (int i = 0; i < 3; i++)
-                    this.backlog.add(new InstructionPc(
+                    this.backlog.add(new InstructionPcStruct(
                         new Instruction_Blank(true), this.notTakenBranchPc + i + 1));
             }
         }
@@ -186,20 +279,13 @@ public class MipsCpuEmulator {
     {
         if (this.loadFlag)
         {
-            int idExePos = incrementPipelinePointer(this.ifIdPos, -1);
-            this.pipeline[this.ifIdPos] = this.pipeline[idExePos];
-            this.pipeline[idExePos] = new InstructionPc(
-                new Instruction_Blank(false), this.pipeline[this.ifIdPos].nextPc);
+            this.pipeline.writeIfId(this.pipeline.getIdExe().instruction, this.pipeline.getIdExe().nextPc);
+            this.pipeline.writeIdExe(new Instruction_Blank(false), this.pipeline.getIfId().nextPc);
             this.loadFlag = false;
             return true;
         }
         return false;
         
-    }
-
-    private int incrementPipelinePointer(int value, int amount)
-    {
-        return (value + amount + PIPE_SIZE) % PIPE_SIZE;
     }
 
     public void printRegisterState()
@@ -235,24 +321,7 @@ public class MipsCpuEmulator {
 
     public void printPipeline()
     {
-        System.out.println("\npc	if/id	id/exe	exe/mem	mem/wb");
-        this.ifIdPos = incrementPipelinePointer(this.ifIdPos, -1);
-
-        if (this.pipeline[this.ifIdPos] == null)
-            System.out.print(this.lastPc + "\t");
-        else
-            System.out.print(this.pipeline[this.ifIdPos].nextPc + "\t");
-
-        for (int i = 0; i < PIPE_SIZE; i++)
-        {
-            if (this.pipeline[this.ifIdPos] == null)
-                System.out.print("empty ");
-            else
-                System.out.print(this.pipeline[this.ifIdPos].instruction.getMnemonic() + " ");
-            this.ifIdPos = incrementPipelinePointer(this.ifIdPos, -1);
-        }
-        this.ifIdPos = incrementPipelinePointer(this.ifIdPos, 1);
-        System.out.println("\n");
+        this.pipeline.printPipeline(this.pc);
         printCpi();
     }
 
@@ -263,16 +332,5 @@ public class MipsCpuEmulator {
         System.out.print("CPI = " + String.format("%.3f", cpi) + " ");
         System.out.print("Cycles = " + this.cycles + " ");
         System.out.println("Instructions = " + this.instructionsExecuted + "\n");
-    }
-}
-
-class InstructionPc
-{
-    public Instruction instruction;
-    public int nextPc;
-    InstructionPc(Instruction instruction, int nextPc)
-    {
-        this.instruction = instruction;
-        this.nextPc = nextPc;
     }
 }

@@ -11,6 +11,7 @@ public class Instruction_I extends Instruction
     private int rs;
     private int rt;
     private int immediate;
+    private int branchPc; // Only for branch instructions
 
     public Instruction_I(String mneumonic, int op, int rt, int rs, int immediate)
     {
@@ -19,6 +20,7 @@ public class Instruction_I extends Instruction
         this.rs = rs;
         this.rt = rt;
         this.immediate = immediate;
+        this.branchPc = 0;
     }
 
     public String getMnemonic()
@@ -41,9 +43,19 @@ public class Instruction_I extends Instruction
         return this.rt;
     }
 
+    public int getImmediate()
+    {
+        return this.immediate;
+    }
+
+    public int getBranchPc()
+    {
+        return this.branchPc;
+    }
+
     public boolean useAfterLoad(Instruction instruction)
     {
-        if (this.op == 35)
+        if (this.op == 35 && this.rt != 0)
         {
             if (instruction instanceof Instruction_R)
             {
@@ -87,14 +99,20 @@ public class Instruction_I extends Instruction
     private int beq(int pc, int[] registers)
     {
         if (registers[this.rs] == registers[this.rt])
-            pc += immediate;
+        {
+            pc = pc - 1 + this.immediate; // -1 because beq is executed 2 cycles after pipeline insertion
+            this.branchPc = pc;
+        }
         return pc;
     }
 
     private int bne(int pc, int[] registers)
     {
         if (registers[this.rs] != registers[this.rt])
-            pc += immediate;
+        {
+            pc = pc - 1 + this.immediate; // -1 because bne is executed 2 cycles after pipeline insertion
+            this.branchPc = pc;
+        }
         return pc;
     }
 
@@ -110,7 +128,21 @@ public class Instruction_I extends Instruction
 
     private void sw(int[] registers, int[] memory)
     {
+        if (registers[this.rs] + immediate == 4079)
+            System.out.println("asd");
         memory[registers[this.rs] + immediate] = registers[this.rt];
+    }
+
+    public boolean isBranchInstruction()
+    {
+        if (this.op == 4 || this.op == 5)
+            return true;
+        return false;
+    }
+
+    public boolean isJumpInstruction()
+    {
+        return false;
     }
 
     public void printBinary()

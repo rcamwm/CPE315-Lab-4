@@ -1,52 +1,42 @@
-lab3:
-	javac lab3.java
+lab4:
+	javac lab4.java
+
+tests:
+	make test1
+	make test2
+	make test3
+	make test4
 
 test1:
-	java lab3 lab3_fib.asm lab3_fib.script > cfib
-	diff -w -B cfib lab3_fib.output
+	java lab4 lab4_fib10.asm lab4_fib10.script > cfib10
+	diff -w -B cfib10 lab4_fib10.output
+	rm cfib10
 
 test2:
-	java lab3 lab3_sum10.asm lab3_sum10.script > csum10
-	diff -w -B csum10 lab3_sum10.output
+	java lab4 lab4_fib20.asm lab4_fib20.script > cfib20
+	diff -w -B cfib20 lab4_fib20.output
+	rm cfib20
 
 test3:
-	java lab3 lab3_test3.asm lab3_test3.script > ctest3
-	diff -w -B ctest3 lab3_test3.output
+	java lab4 lab4_test1.asm lab4_test1.script > ctest1
+	diff -w -B ctest1 lab4_test1.output
+	rm ctest1
 
-delC: # delete .class files and my comparison files
-	rm cfib
-	rm csum10
-	rm ctest3
-	rm Instruction_I.class
-	rm Instruction_J.class
-	rm Instruction_R.class
-	rm Instruction.class
-	rm lab3.class
-	rm MipsAssembler.class
-	rm MipsDebugger.class
-	rm Operations.class
-	rm Registers.class
+test4:
+	java lab4 lab4_test2.asm lab4_test2.script > ctest2
+	diff -w -B ctest2 lab4_test2.output
+	rm ctest2
+
+delC: 
+	rm *.class
+
+dlab4:
+	rm *.class
+	javac lab4.java
 
 turnin:
-	handin jseng 315_lab3_1 Makefile
-	handin jseng 315_lab3_1 Instruction.java
-	handin jseng 315_lab3_1 Instruction_I.java
-	handin jseng 315_lab3_1 Instruction_J.java
-	handin jseng 315_lab3_1 Instruction_R.java
-	handin jseng 315_lab3_1 lab3.java
-	handin jseng 315_lab3_1 MipsAssembler.java
-	handin jseng 315_lab3_1 MipsDebugger.java
-	handin jseng 315_lab3_1 Operations.java
-	handin jseng 315_lab3_1 Registers.java
+	handin jseng 315_lab4_1 Makefile
+	handin jseng 315_lab4_1 *.java
 
 move:
-	mv Makefile //home/rmcgiffe/CPE315Lab3
-	mv Instruction_I.java //home/rmcgiffe/CPE315Lab3
-	mv Instruction_J.java //home/rmcgiffe/CPE315Lab3
-	mv Instruction_R.java //home/rmcgiffe/CPE315Lab3
-	mv Instruction.java //home/rmcgiffe/CPE315Lab3
-	mv lab3.java //home/rmcgiffe/CPE315Lab3
-	mv MipsAssembler.java //home/rmcgiffe/CPE315Lab3
-	mv MipsDebugger.java //home/rmcgiffe/CPE315Lab3
-	mv Operations.java //home/rmcgiffe/CPE315Lab3
-	mv Registers.java //home/rmcgiffe/CPE315Lab3
+	mv * //home/rmcgiffe/CPE315lab4
