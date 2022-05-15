@@ -151,5 +151,26 @@ public class Instruction_R extends Instruction
         System.out.print(String.format("%5s", Integer.toBinaryString(this.shamt)).replace(" ", "0") + " ");
         System.out.println(String.format("%6s", Integer.toBinaryString(this.funct)).replace(" ", "0"));
     }
+
+    @Override
+    public String toString()
+    {
+        if (this.funct == 0 || this.funct == 2)
+        {
+            return String.format("%8s", this.mneumonic) +
+                Registers.registerArray[this.rd] + ", " +
+                Registers.registerArray[this.rt] + ", " +
+                Registers.registerArray[this.shamt];
+        }
+        else if (this.funct == 8)
+        {
+            return String.format("%8s", this.mneumonic) +
+                Registers.registerArray[this.rs];
+        }
+        return String.format("%8s", this.mneumonic) +
+            Registers.registerArray[this.rd] + ", " +
+            Registers.registerArray[this.rs] + ", " +
+            Registers.registerArray[this.rt];
+    }
 }
 

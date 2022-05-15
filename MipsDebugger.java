@@ -134,7 +134,7 @@ public class MipsDebugger {
 
     private void displayMemory(int num1, int num2)
     {
-        cpu.displayMemory(num1, num2);
+        cpu.printMemoryState(num1, num2);
     }
 
     private void clear()

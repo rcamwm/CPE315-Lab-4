@@ -47,13 +47,11 @@ public class MipsCpuEmulator
         this.pcOverwritten = false;
 
         int currentPc = this.pc;
-        instructionFetch(currentPc);
-        instructionDecode(currentPc);
-        instructionExecute(currentPc);
         instructionMemoryAccess(currentPc);
-
-        if (!pcOverwritten)
-            this.pc++;
+        instructionExecute(currentPc);
+        instructionDecode(currentPc);
+        if (!this.pcOverwritten)
+            instructionFetch(currentPc);
         this.pipeline.cycleIncrement();
     }
 
@@ -63,6 +61,7 @@ public class MipsCpuEmulator
             this.pipeline.writeIfId(this.instructions[currentPc]);
         else
             this.pipeline.clearIfId();
+        this.pc++;
     }
 
     private void instructionDecode(int currentPc)
@@ -81,10 +80,7 @@ public class MipsCpuEmulator
                 else if (decoded instanceof Instruction_R)
                 {
                     this.pc = this.registers[((Instruction_R)decoded).getRs()];
-                    if (this.pc == 0) 
-                        System.out.println("what");
                 }
-                    
                 this.pcOverwritten = true;
             }
         }
@@ -139,6 +135,8 @@ public class MipsCpuEmulator
     {
         while (this.pc < instructions.length || this.pipeline.getInstructionCount() > 0)
         {
+            // if (this.pc == 10)
+            //     System.out.print("");
             cycle();
             // printPipeline();
         }
@@ -157,7 +155,8 @@ public class MipsCpuEmulator
     {
         HashSet<Integer> skipReg = new HashSet<>(Arrays.asList(1, 26, 27, 28, 30));
         int newLine = 0;
-        System.out.println("\npc = " + this.pc);
+        int printPc = (this.pc < 2) ? 0 : this.pc - 2;
+        System.out.println("\npc = " + (printPc));
         for (int r = 0; r < Registers.registerArray.length; r++)
         {
             if (!skipReg.contains(r))
@@ -174,7 +173,7 @@ public class MipsCpuEmulator
         System.out.println("\n");
     }
 
-    public void displayMemory(int num1, int num2)
+    public void printMemoryState(int num1, int num2)
     {
         System.out.println();
         for (int i = num1; i <= num2; i++)
@@ -188,6 +187,8 @@ public class MipsCpuEmulator
     {
         this.pipeline.printPipeline(this.pc);
         // printCpi();
+        // printRegisterState();
+        // printMemoryState(4090, 4095);
     }
 
     public void printCpi()

@@ -1,17 +1,17 @@
 public class Instruction_Blank extends Instruction
 {   
-    String mnemonic;
+    String mneumonic;
     Instruction_Blank(boolean trueForSquash_falseForStall) 
     {
         if (trueForSquash_falseForStall)
-            this.mnemonic = "squash";
+            this.mneumonic = "squash";
         else
-            this.mnemonic = "stall";
+            this.mneumonic = "stall";
     }
 
     public String getMnemonic()
     {
-        return this.mnemonic;
+        return this.mneumonic;
     }
 
     public void executeInstruction(int pc, int[] registers, int[] memory) {}
@@ -21,4 +21,10 @@ public class Instruction_Blank extends Instruction
     public boolean isJumpInstruction() { return false; }
 
     public void printBinary() {}
+
+    @Override
+    public String toString()
+    {
+        return this.mneumonic;
+    }
 }

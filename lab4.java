@@ -7,15 +7,15 @@ Lab 4
 public class lab4 {
     public static void main(String[] args)
     {
-        final boolean DEBUG = false;
+        final boolean DEBUG = true;
         if (DEBUG)
         {
-            String[] filenames = {"jaltest", "lab4_fib10", "lab4_fib20", "lab4_test1", "lab4_test2"};
-            String fileName = filenames[1];
+            String[] filenames = {"lab4_fib3", "lab4_fib10", "lab4_fib20", "lab4_test1", "lab4_test2"};
+            String fileName = filenames[0];
 
             Instruction[] instructions = MipsAssembler.getInstructions(fileName + ".asm");
             MipsDebugger debugger = new MipsDebugger(instructions);
-            debugger.run();
+            debugger.run(fileName + ".script");
         }
         else 
         {

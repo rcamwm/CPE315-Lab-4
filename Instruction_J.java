@@ -66,5 +66,9 @@ public class Instruction_J extends Instruction
         System.out.println(String.format("%26s", Integer.toBinaryString(this.address)).replace(" ", "0"));
     }
 
-   
+    @Override
+    public String toString()
+    {
+        return String.format("%8s", this.mneumonic) + "    " + this.address;
+    }
 }

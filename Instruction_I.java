@@ -152,4 +152,13 @@ public class Instruction_I extends Instruction
         else
             System.out.println(String.format("%16s", Integer.toBinaryString(this.immediate)).replace(" ", "0"));
     }
+
+    @Override
+    public String toString()
+    {
+        return String.format("%8s", this.mneumonic) +
+            Registers.registerArray[this.rt] + ", " +
+            Registers.registerArray[this.rs] + ", " +
+            this.immediate;
+    }
 }
