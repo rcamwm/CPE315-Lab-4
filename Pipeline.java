@@ -1,3 +1,9 @@
+/*
+Cameron McGiffert 
+CPE315 Section 1
+Lab 4
+ */
+
 import java.util.Arrays;
 
 public class Pipeline {

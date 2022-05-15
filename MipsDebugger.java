@@ -9,18 +9,10 @@ import java.io.File;
 import java.io.FileNotFoundException;
 
 public class MipsDebugger {
-    // private int pc;
-    // private int[] registers;
-    // private int[] memory;
-    // private Instruction[] instructions;
     private MipsCpuEmulator cpu;
 
     MipsDebugger(Instruction[] instructions)
     {
-        // this.pc = 0;
-        // this.registers = new int[32];
-        // this.memory = new int[8192];
-        // this.instructions = instructions;
         this.cpu = new MipsCpuEmulator(instructions);
     }
 
@@ -76,22 +68,28 @@ public class MipsDebugger {
                 help();
                 break;
             case 'd':
-                dumpRegisterState();
+                cpu.printRegisterState();
+                break;
+            case 'p':
+                this.cpu.printPipeline();
                 break;
             case 's':
                 if (arguments.length > 1)
-                    singleStep(Integer.parseInt(arguments[1]));
+                    this.cpu.runNCycles(Integer.parseInt(arguments[1]));
                 else
-                    singleStep(1);
+                    this.cpu.runCycle();
+                this.cpu.printPipeline();
                 break;
             case 'r':
-                runProgram();
+                cpu.runAllCycles();
+                cpu.printCpi();
                 break;
             case 'm':
-                displayMemory(Integer.parseInt(arguments[1]), Integer.parseInt(arguments[2]));
+                cpu.printMemoryState(Integer.parseInt(arguments[1]), Integer.parseInt(arguments[2]));
                 break;
             case 'c':
-                clear();
+                System.out.println("        Simulator reset\n");
+                cpu.reset();
                 break;
             case 'q':
                 break;
@@ -106,40 +104,13 @@ public class MipsDebugger {
         System.out.println();
         System.out.println("h = show help");
         System.out.println("d = dump register state");
-        System.out.println("s = single step through the program (i.e. execute 1 instruction and stop)");
-        System.out.println("s num = step through num instructions of the program");
-        System.out.println("r = run until the program ends");
+        System.out.println("p = show pipeline registers");
+        System.out.println("s = step through a single clock cycle step (i.e. simulate 1 cycle and stop)");
+        System.out.println("s num = step through num clock cycles");
+        System.out.println("r = run until the program ends and display timing summary");
         System.out.println("m num1 num2 = display data memory from location num1 to num2");
         System.out.println("c = clear all registers, memory, and the program counter to 0");
         System.out.println("q = exit the program");
         System.out.println();
-    }
-
-    private void dumpRegisterState()
-    {
-        cpu.printRegisterState();
-    }
-
-    private void singleStep(int steps)
-    {    
-        cpu.runSingleCycle(steps);
-        cpu.printPipeline();  
-    }
-
-    private void runProgram()
-    {
-        cpu.runAllCycles();
-        cpu.printCpi();
-    }
-
-    private void displayMemory(int num1, int num2)
-    {
-        cpu.printMemoryState(num1, num2);
-    }
-
-    private void clear()
-    {
-        System.out.println("        Simulator reset\n");
-        cpu.reset();
     }
 }

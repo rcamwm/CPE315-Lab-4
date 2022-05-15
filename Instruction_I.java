@@ -53,6 +53,11 @@ public class Instruction_I extends Instruction
         return this.branchPc;
     }
 
+    public void resetBranchPc()
+    {
+        this.branchPc = 0;
+    }
+
     public boolean useAfterLoad(Instruction instruction)
     {
         if (this.op == 35 && this.rt != 0)
@@ -125,8 +130,6 @@ public class Instruction_I extends Instruction
 
     private void sw(int[] registers, int[] memory)
     {
-        if (registers[this.rs] + immediate == 4079)
-            System.out.println("asd");
         memory[registers[this.rs] + immediate] = registers[this.rt];
     }
 
@@ -156,7 +159,15 @@ public class Instruction_I extends Instruction
     @Override
     public String toString()
     {
-        return String.format("%8s", this.mneumonic) +
+        if (this.op == 4 || this.op == 5)
+        {
+            return String.format("%s %3s", this.mneumonic, " ") +
+                Registers.registerArray[this.rt] + ", " +
+                Registers.registerArray[this.rs] + ", " +
+                this.immediate + 
+                " # -> " + this.branchPc;
+        }
+        return String.format("%s %3s", this.mneumonic, " ") +
             Registers.registerArray[this.rt] + ", " +
             Registers.registerArray[this.rs] + ", " +
             this.immediate;

@@ -157,17 +157,17 @@ public class Instruction_R extends Instruction
     {
         if (this.funct == 0 || this.funct == 2)
         {
-            return String.format("%8s", this.mneumonic) +
+            return String.format("%s %3s", this.mneumonic, " ") +
                 Registers.registerArray[this.rd] + ", " +
                 Registers.registerArray[this.rt] + ", " +
                 Registers.registerArray[this.shamt];
         }
         else if (this.funct == 8)
         {
-            return String.format("%8s", this.mneumonic) +
+            return String.format("%s %3s", this.mneumonic, " ") +
                 Registers.registerArray[this.rs];
         }
-        return String.format("%8s", this.mneumonic) +
+        return String.format("%s %3s", this.mneumonic, " ") +
             Registers.registerArray[this.rd] + ", " +
             Registers.registerArray[this.rs] + ", " +
             Registers.registerArray[this.rt];

@@ -69,6 +69,6 @@ public class Instruction_J extends Instruction
     @Override
     public String toString()
     {
-        return String.format("%8s", this.mneumonic) + "    " + this.address;
+        return String.format("%s %3s", this.mneumonic, " ") + "    " + this.address;
     }
 }

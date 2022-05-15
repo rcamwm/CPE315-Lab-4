@@ -37,10 +37,9 @@ public class MipsCpuEmulator
         this.pipeline.clear();
         Arrays.fill(this.registers, 0);
         Arrays.fill(this.memory, 0);
-        
     }
 
-    public void cycle()
+    public void runCycle()
     {
         this.cycles++;
         updateInstructionExecuted();
@@ -78,9 +77,7 @@ public class MipsCpuEmulator
                     this.pc = ((Instruction_J)decoded).getAddress();
                 }
                 else if (decoded instanceof Instruction_R)
-                {
                     this.pc = this.registers[((Instruction_R)decoded).getRs()];
-                }
                 this.pcOverwritten = true;
             }
         }
@@ -113,6 +110,7 @@ public class MipsCpuEmulator
                 int newPc = ((Instruction_I)memoryAccessed).getBranchPc();
                 if (newPc != 0)
                 {
+                    ((Instruction_I)memoryAccessed).resetBranchPc();
                     this.pipeline.writeIfId(new Instruction_Blank(true));
                     this.pipeline.writeIdExe(new Instruction_Blank(true));
                     this.pipeline.writeExeMem(new Instruction_Blank(true));
@@ -123,23 +121,16 @@ public class MipsCpuEmulator
         }
     }
 
-    public void runSingleCycle(int steps)
+    public void runNCycles(int N)
     {
-        for (int s = 0; s < steps; s++)
-        {
-            cycle();
-        }        
+        for (int n = 0; n < N; n++)
+            runCycle();
     }
 
     public void runAllCycles()
     {
         while (this.pc < instructions.length || this.pipeline.getInstructionCount() > 0)
-        {
-            // if (this.pc == 10)
-            //     System.out.print("");
-            cycle();
-            // printPipeline();
-        }
+            runCycle();
     }
 
     private void updateInstructionExecuted()
@@ -177,18 +168,13 @@ public class MipsCpuEmulator
     {
         System.out.println();
         for (int i = num1; i <= num2; i++)
-        {
             System.out.println("[" + i + "] = " + memory[i]);
-        }
         System.out.println();
     }
 
     public void printPipeline()
     {
         this.pipeline.printPipeline(this.pc);
-        // printCpi();
-        // printRegisterState();
-        // printMemoryState(4090, 4095);
     }
 
     public void printCpi()
