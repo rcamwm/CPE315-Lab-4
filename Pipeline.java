@@ -2,13 +2,13 @@ import java.util.Arrays;
 
 public class Pipeline {
     final private int PIPESIZE = 4;
-    private InstructionPcStruct[] pipeline;
+    private Instruction[] pipeline;
     private int ifIdPos;
     private int instructionCount;
 
     Pipeline()
     {
-        this.pipeline = new InstructionPcStruct[PIPESIZE];
+        this.pipeline = new Instruction[PIPESIZE];
         Arrays.fill(this.pipeline, null);
         this.ifIdPos = 0;
         this.instructionCount = 0;
@@ -26,27 +26,27 @@ public class Pipeline {
         this.instructionCount = 0;
     }
 
-    public void writeIfId(Instruction instruction, int nextPc)
+    public void writeIfId(Instruction instruction)
     {
         if (this.pipeline[this.ifIdPos] == null)
             this.instructionCount++;
-        this.pipeline[this.ifIdPos] = new InstructionPcStruct(instruction, nextPc);
+        this.pipeline[this.ifIdPos] = instruction;
     }
 
-    public void writeIdExe(Instruction instruction, int nextPc)
+    public void writeIdExe(Instruction instruction)
     {
         int idExePos = incrementPipelinePointer(this.ifIdPos, -1);
         if (this.pipeline[idExePos] == null)
             this.instructionCount++;
-        this.pipeline[idExePos] = new InstructionPcStruct(instruction, nextPc);
+        this.pipeline[idExePos] = instruction;
     }
 
-    public void writeExeMem(Instruction instruction, int nextPc)
+    public void writeExeMem(Instruction instruction)
     {
         int exeMemPos = incrementPipelinePointer(this.ifIdPos, -2);
         if (this.pipeline[exeMemPos] == null)
             this.instructionCount++;
-        this.pipeline[exeMemPos] = new InstructionPcStruct(instruction, nextPc);
+        this.pipeline[exeMemPos] = instruction;
     }
 
     public void clearIfId()
@@ -55,36 +55,29 @@ public class Pipeline {
         this.instructionCount--;
     }
 
-    public void stallIfId(Instruction newIdExeInstruction, int nextPc)
-    {
-        int idExePos = incrementPipelinePointer(this.ifIdPos, -1);
-        this.pipeline[this.ifIdPos] = this.pipeline[idExePos];
-        this.pipeline[idExePos] = new InstructionPcStruct(newIdExeInstruction, nextPc); 
-    }
-
     public int getInstructionCount()
     {
         return this.instructionCount;
     }
 
-    public InstructionPcStruct getIfId()
+    public Instruction getIfId()
     {
         return this.pipeline[this.ifIdPos];
     }
 
-    public InstructionPcStruct getIdExe()
+    public Instruction getIdExe()
     {
         int idExePos = incrementPipelinePointer(this.ifIdPos, -1);
         return this.pipeline[idExePos];
     }
 
-    public InstructionPcStruct getExeMem()
+    public Instruction getExeMem()
     {
         int exeMemPos = incrementPipelinePointer(this.ifIdPos, -2);
         return this.pipeline[exeMemPos];
     }
 
-    public InstructionPcStruct getMemWb()
+    public Instruction getMemWb()
     {
         int memWbPos = incrementPipelinePointer(this.ifIdPos, -3);
         return this.pipeline[memWbPos];
@@ -107,7 +100,7 @@ public class Pipeline {
             if (this.pipeline[this.ifIdPos] == null)
                 System.out.print("empty ");
             else
-                System.out.print(this.pipeline[this.ifIdPos].instruction.getMnemonic() + " ");
+                System.out.print(this.pipeline[this.ifIdPos].getMnemonic() + " ");
             this.ifIdPos = incrementPipelinePointer(this.ifIdPos, -1);
         }
         this.ifIdPos = incrementPipelinePointer(this.ifIdPos, 1);

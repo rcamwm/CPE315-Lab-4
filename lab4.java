@@ -7,7 +7,7 @@ Lab 4
 public class lab4 {
     public static void main(String[] args)
     {
-        final boolean DEBUG = true;
+        final boolean DEBUG = false;
         if (DEBUG)
         {
             String[] filenames = {"jaltest", "lab4_fib10", "lab4_fib20", "lab4_test1", "lab4_test2"};

@@ -39,11 +39,10 @@ public class Instruction_J extends Instruction
         return this.returnPc;
     }
 
-    public int executeInstruction(int pc, int[] registers, int[] memory)
+    public void executeInstruction(int pc, int[] registers, int[] memory)
     {
         if (this.op == 3)
             jal(registers);
-        return this.address; // j
     }
 
     private void jal(int[] registers)

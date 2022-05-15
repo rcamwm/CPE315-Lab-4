@@ -6,7 +6,7 @@ Lab 4
 
 public abstract class Instruction
 {
-    public abstract int executeInstruction(int pc, int[] registers, int[] memory); // Returns address of next instruction
+    public abstract void executeInstruction(int pc, int[] registers, int[] memory);
     public abstract void printBinary();
     public abstract String getMnemonic();
     public abstract boolean isBranchInstruction();

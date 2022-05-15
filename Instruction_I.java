@@ -81,39 +81,36 @@ public class Instruction_I extends Instruction
         return false;
     }
 
-    public int executeInstruction(int pc, int[] registers, int[] memory)
+    public void executeInstruction(int pc, int[] registers, int[] memory)
     {
         if (this.op == 4)
-            pc = beq(pc, registers);
+            beq(pc, registers);
         else if (this.op == 5)
-            pc = bne(pc, registers);
+            bne(pc, registers);
         else if (this.op == 8)
             addi(registers);
         else if (this.op == 35)
             lw(registers, memory);
         else if (this.op == 43)
-            sw(registers, memory);
-        return pc + 1;       
+            sw(registers, memory);   
     }
 
-    private int beq(int pc, int[] registers)
+    private void beq(int pc, int[] registers)
     {
         if (registers[this.rs] == registers[this.rt])
         {
             pc = pc - 1 + this.immediate; // -1 because beq is executed 2 cycles after pipeline insertion
             this.branchPc = pc;
         }
-        return pc;
     }
 
-    private int bne(int pc, int[] registers)
+    private void bne(int pc, int[] registers)
     {
         if (registers[this.rs] != registers[this.rt])
         {
             pc = pc - 1 + this.immediate; // -1 because bne is executed 2 cycles after pipeline insertion
             this.branchPc = pc;
         }
-        return pc;
     }
 
     private void addi(int[] registers)

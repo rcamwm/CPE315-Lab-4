@@ -67,14 +67,14 @@ public class Instruction_R extends Instruction
         return this.funct;
     }
 
-    public int executeInstruction(int pc, int[] registers, int[] memory)
+    public void executeInstruction(int pc, int[] registers, int[] memory)
     {
         if (this.funct == 0)
             sll(registers);
         else if (this.funct == 2)
             srl(registers);
         else if (this.funct == 8)
-            return jr(registers);
+            jr(registers);
         else if (this.funct == 32)
             add(registers);
         else if (this.funct == 34)
@@ -85,7 +85,6 @@ public class Instruction_R extends Instruction
             or(registers);
         else if (this.funct == 42)
             slt(registers);
-        return pc + 1;       
     }
 
     private void sll(int[] registers)
