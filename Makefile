@@ -2,10 +2,12 @@ lab4:
 	javac lab4.java
 
 tests:
+	javac lab4.java
 	make test1
 	make test2
 	make test3
 	make test4
+	make delClass
 
 test1:
 	java lab4 lab4_fib10.asm lab4_fib10.script > cfib10
@@ -27,7 +29,7 @@ test4:
 	diff -w -B ctest2 lab4_test2.output
 	rm ctest2
 
-delC: 
+delClass: 
 	rm *.class
 
 dlab4:
@@ -37,6 +39,3 @@ dlab4:
 turnin:
 	handin jseng 315_lab4_1 Makefile
 	handin jseng 315_lab4_1 *.java
-
-move:
-	mv * //home/rmcgiffe/CPE315lab4

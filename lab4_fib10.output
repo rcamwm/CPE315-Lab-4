@@ -7,7 +7,7 @@ mips> s
  
 pc	if/id	id/exe	exe/mem	mem/wb
 2	addi	addi	empty	empty
- 	
+ 
 mips> s
  
 pc	if/id	id/exe	exe/mem	mem/wb
