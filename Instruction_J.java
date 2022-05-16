@@ -6,22 +6,14 @@ Lab 4
 
 public class Instruction_J extends Instruction
 {
-    private String mneumonic;
-    private int op;
     private int address;
     private int returnPc; // For jal instructions
 
     public Instruction_J(String mneumonic, int op, int address)
     {
-        this.mneumonic = mneumonic;
-        this.op = op;
+        super(mneumonic, op);
         this.address = address;
         this.returnPc = 0;
-    }
-
-    public String getMnemonic()
-    {
-        return this.mneumonic;
     }
 
     public int getAddress()
@@ -39,6 +31,7 @@ public class Instruction_J extends Instruction
         return this.returnPc;
     }
 
+    @Override
     public void executeInstruction(int pc, int[] registers, int[] memory)
     {
         if (this.op == 3)
@@ -50,16 +43,13 @@ public class Instruction_J extends Instruction
         registers[Registers.registerTable.get("$ra")] = this.returnPc;
     } // +0 because returnPc is set 1 cycle after insertion, and so as to not rerun jal
 
-    public boolean isBranchInstruction()
-    {
-        return false;
-    }
-
+    @Override
     public boolean isJumpInstruction()
     {
         return true;
     }
 
+    @Override
     public void printBinary()
     {
         System.out.print(String.format("%6s", Integer.toBinaryString(this.op)).replace(" ", "0") + " ");

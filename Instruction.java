@@ -4,13 +4,26 @@ CPE315 Section 1
 Lab 4
  */
 
-public abstract class Instruction
+public class Instruction
 {
-    public abstract void executeInstruction(int pc, int[] registers, int[] memory);
-    public abstract void printBinary();
-    public abstract String getMnemonic();
-    public abstract boolean isBranchInstruction();
-    public abstract boolean isJumpInstruction();
+    String mneumonic;
+    int op;
+
+    Instruction(String mneumonic, int op)
+    {
+        this.mneumonic = mneumonic;
+        this.op = op;
+    }
+
+    public void executeInstruction(int pc, int[] registers, int[] memory) {}
+
+    public String getMnemonic() { return this.mneumonic; }
+    public int getOpCode() { return this.op; }
+
+    public boolean isBranchInstruction() { return false; }
+    public boolean useAfterLoad(Instruction instruction) { return false; }
+    public boolean isJumpInstruction() { return false; }
+    public void printBinary() {}
     
     static public void invalidInstructionError(String op)
     {

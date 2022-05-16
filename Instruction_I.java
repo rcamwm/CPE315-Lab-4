@@ -6,8 +6,6 @@ Lab 4
 
 public class Instruction_I extends Instruction
 {
-    private String mneumonic;
-    private int op;
     private int rs;
     private int rt;
     private int immediate;
@@ -15,22 +13,11 @@ public class Instruction_I extends Instruction
 
     public Instruction_I(String mneumonic, int op, int rt, int rs, int immediate)
     {
-        this.mneumonic = mneumonic;
-        this.op = op;
+        super(mneumonic, op);
         this.rs = rs;
         this.rt = rt;
         this.immediate = immediate;
         this.branchPc = 0;
-    }
-
-    public String getMnemonic()
-    {
-        return this.mneumonic;
-    }
-
-    public int getOpCode()
-    {
-        return this.op;
     }
 
     public int getRs()
@@ -58,34 +45,7 @@ public class Instruction_I extends Instruction
         this.branchPc = 0;
     }
 
-    public boolean useAfterLoad(Instruction instruction)
-    {
-        if (this.op == 35 && this.rt != 0)
-        {
-            if (instruction instanceof Instruction_R)
-            {
-                Instruction_R r = (Instruction_R)instruction;
-                if (this.rt == r.getRs() || this.rt == r.getRt())
-                    return true;
-            }
-            else if (instruction instanceof Instruction_I)
-            {
-                Instruction_I i = (Instruction_I)instruction;
-                if (this.rt == i.getRs())
-                    return true;
-            }
-        }
-        return false;
-        
-    }
-
-    public boolean usesRegister(int reg)
-    {
-        if (reg == this.rs || reg == this.rt)
-            return true;
-        return false;
-    }
-
+    @Override
     public void executeInstruction(int pc, int[] registers, int[] memory)
     {
         if (this.op == 4)
@@ -133,6 +93,7 @@ public class Instruction_I extends Instruction
         memory[registers[this.rs] + immediate] = registers[this.rt];
     }
 
+    @Override
     public boolean isBranchInstruction()
     {
         if (this.op == 4 || this.op == 5)
@@ -140,11 +101,28 @@ public class Instruction_I extends Instruction
         return false;
     }
 
-    public boolean isJumpInstruction()
+    @Override
+    public boolean useAfterLoad(Instruction instruction)
     {
+        if (this.op == 35 && this.rt != 0)
+        {
+            if (instruction instanceof Instruction_R)
+            {
+                Instruction_R r = (Instruction_R)instruction;
+                if (this.rt == r.getRs() || this.rt == r.getRt())
+                    return true;
+            }
+            else if (instruction instanceof Instruction_I)
+            {
+                Instruction_I i = (Instruction_I)instruction;
+                if (this.rt == i.getRs())
+                    return true;
+            }
+        }
         return false;
     }
 
+    @Override
     public void printBinary()
     {
         System.out.print(String.format("%6s", Integer.toBinaryString(this.op)).replace(" ", "0") + " ");

@@ -6,8 +6,6 @@ Lab 4
 
 public class Instruction_R extends Instruction
 {
-    private String mneumonic;
-    private int op = 0;
     private int rs;
     private int rt;
     private int rd;
@@ -16,7 +14,7 @@ public class Instruction_R extends Instruction
 
     public Instruction_R(String mneumonic, int funct, int rd, int rs, int rt)
     {
-        this.mneumonic = mneumonic;
+        super(mneumonic, 0);
         this.rs = rs;
         this.rt = rt;
         this.rd = rd;
@@ -26,7 +24,7 @@ public class Instruction_R extends Instruction
 
     public Instruction_R(String mneumonic, char shiftDirection, int rd, int rt, int shamt)
     {
-        this.mneumonic = mneumonic;
+        super(mneumonic, 0);
         this.rs = 0;
         this.rt = rt;
         this.rd = rd;
@@ -39,17 +37,12 @@ public class Instruction_R extends Instruction
 
     public Instruction_R(String mneumonic, int funct, int rs)
     {
-        this.mneumonic = mneumonic;
+        super(mneumonic, 0);
         this.rs = rs;
         this.rt = 0;
         this.rd = 0;
         this.shamt = 0;
         this.funct = funct;
-    }
-
-    public String getMnemonic()
-    {
-        return this.mneumonic;
     }
 
     public int getRs()
@@ -67,6 +60,7 @@ public class Instruction_R extends Instruction
         return this.funct;
     }
 
+    @Override
     public void executeInstruction(int pc, int[] registers, int[] memory)
     {
         if (this.funct == 0)
@@ -130,11 +124,7 @@ public class Instruction_R extends Instruction
             registers[this.rd] = 0;
     }
 
-    public boolean isBranchInstruction()
-    {
-        return false;
-    }
-
+    @Override
     public boolean isJumpInstruction()
     {
         if (this.funct == 8)
@@ -142,6 +132,7 @@ public class Instruction_R extends Instruction
         return false;
     }
 
+    @Override
     public void printBinary()
     {
         System.out.print(String.format("%6s", Integer.toBinaryString(this.op)).replace(" ", "0") + " ");

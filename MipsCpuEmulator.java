@@ -70,10 +70,10 @@ public class MipsCpuEmulator
             Instruction decoded = this.pipeline.getIdExe();
             if (decoded.isJumpInstruction())
             {
-                this.pipeline.writeIfId(new Instruction_Blank(true));
+                this.pipeline.writeIfId(new Instruction("squash", 0));
                 if (decoded instanceof Instruction_J)
                 {
-                    ((Instruction_J)decoded).setReturnPc(this.pc);
+                    ((Instruction_J)decoded).setReturnPc(currentPc);
                     this.pc = ((Instruction_J)decoded).getAddress();
                 }
                 else if (decoded instanceof Instruction_R)
@@ -90,11 +90,10 @@ public class MipsCpuEmulator
             Instruction executed = this.pipeline.getExeMem();
             executed.executeInstruction(currentPc, this.registers, this.memory);
             if (this.pipeline.getIdExe() != null &&
-                executed instanceof Instruction_I &&
-                ((Instruction_I)executed).useAfterLoad(this.pipeline.getIdExe()))
+                executed.useAfterLoad(this.pipeline.getIdExe()))
             {
                 this.pipeline.writeIfId(this.pipeline.getIdExe());
-                this.pipeline.writeIdExe(new Instruction_Blank(false));    
+                this.pipeline.writeIdExe(new Instruction("stall", 0));    
                 this.pcOverwritten = true;
             }
         }
@@ -111,9 +110,9 @@ public class MipsCpuEmulator
                 if (newPc != 0)
                 {
                     ((Instruction_I)memoryAccessed).resetBranchPc();
-                    this.pipeline.writeIfId(new Instruction_Blank(true));
-                    this.pipeline.writeIdExe(new Instruction_Blank(true));
-                    this.pipeline.writeExeMem(new Instruction_Blank(true));
+                    this.pipeline.writeIfId(new Instruction("squash", 0));
+                    this.pipeline.writeIdExe(new Instruction("squash", 0));
+                    this.pipeline.writeExeMem(new Instruction("squash", 0));
                     this.pc = newPc;
                     this.pcOverwritten = true;
                 }
@@ -136,7 +135,8 @@ public class MipsCpuEmulator
     private void updateInstructionExecuted()
     {
         if (this.pipeline.getIfId() != null &&
-            !(this.pipeline.getIfId() instanceof Instruction_Blank))
+            !this.pipeline.getIfId().getMnemonic().equals("squash") &&
+            !this.pipeline.getIfId().getMnemonic().equals("stall"))
         {
             this.instructionsExecuted++;
         }
